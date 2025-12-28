@@ -111,10 +111,90 @@ def zoom_crop(
     return crop_image(img, center_x, center_y, crop_w, crop_h)
 
 
+def fit_image_to_aspect_ratio(
+    img: ImageArray,
+    target_aspect_ratio: float
+) -> ImageArray:
+    """
+    Voeg padding toe aan image zodat het de target aspect ratio krijgt
+    zonder de originele foto te vervormen (letterboxing/pillarboxing)
+    
+    Args:
+        img: numpy array (H, W, 3)
+        target_aspect_ratio: width/height van de target shape
+        
+    Returns:
+        Image met padding, in target aspect ratio
+        
+    Voorbeeld:
+        # Maak foto 16:9 zonder vervorming
+        fitted = fit_image_to_aspect_ratio(img, 16/9)
+    """
+    img_h, img_w = img.shape[:2]
+    img_ratio = img_w / img_h
+    
+    if abs(img_ratio - target_aspect_ratio) < 0.001:
+        # Al de juiste ratio
+        return img
+    
+    if img_ratio > target_aspect_ratio:
+        # Image is te breed - voeg top/bottom padding toe
+        new_height = int(img_w / target_aspect_ratio)
+        pad_total = new_height - img_h
+        pad_top = pad_total // 2
+        pad_bottom = pad_total - pad_top
+        
+        padded = cv2.copyMakeBorder(
+            img,
+            pad_top, pad_bottom, 0, 0,
+            cv2.BORDER_CONSTANT,
+            value=(0, 0, 0)
+        )
+    else:
+        # Image is te hoog - voeg left/right padding toe
+        new_width = int(img_h * target_aspect_ratio)
+        pad_total = new_width - img_w
+        pad_left = pad_total // 2
+        pad_right = pad_total - pad_left
+        
+        padded = cv2.copyMakeBorder(
+            img,
+            0, 0, pad_left, pad_right,
+            cv2.BORDER_CONSTANT,
+            value=(0, 0, 0)
+        )
+    
+    return padded
+
+
+def calculate_quad_aspect_ratio(corners: Corners) -> float:
+    """
+    Bereken de gemiddelde aspect ratio van je 4-hoek
+    
+    Args:
+        corners: 4 hoekpunten [top-left, top-right, bottom-right, bottom-left]
+        
+    Returns:
+        width/height ratio van de quad
+    """
+    # Bereken gemiddelde breedte (top + bottom) / 2
+    top_width = abs(corners[1][0] - corners[0][0])
+    bottom_width = abs(corners[2][0] - corners[3][0])
+    avg_width = (top_width + bottom_width) / 2
+    
+    # Bereken gemiddelde hoogte (left + right) / 2
+    left_height = abs(corners[3][1] - corners[0][1])
+    right_height = abs(corners[2][1] - corners[1][1])
+    avg_height = (left_height + right_height) / 2
+    
+    return avg_width / avg_height if avg_height > 0 else 1.0
+
+
 def perspective_warp(
     img: ImageArray, 
     corners: Corners, 
-    output_size: Tuple[int, int]
+    output_size: Tuple[int, int],
+    preserve_aspect_ratio: bool = True
 ) -> ImageArray:
     """
     Past perspective transformation toe (dit is de KERNFUNCTIE!)
@@ -125,6 +205,7 @@ def perspective_warp(
         corners: List van 4 [x,y] punten - de hoeken op je beamer/canvas waar de foto naartoe moet
                  Volgorde: [top-left, top-right, bottom-right, bottom-left]
         output_size: (width, height) van output canvas (bv beamer resolution)
+        preserve_aspect_ratio: Als True, voeg padding toe zodat foto niet vervormd wordt
         
     Returns:
         numpy array met transformed image in canvas van output_size
@@ -133,6 +214,11 @@ def perspective_warp(
         corners = [[100, 100], [800, 150], [750, 600], [150, 580]]
         warped = perspective_warp(img, corners, (1920, 1080))
     """
+    # Als we aspect ratio willen behouden, fit image eerst
+    if preserve_aspect_ratio:
+        target_ratio = calculate_quad_aspect_ratio(corners)
+        img = fit_image_to_aspect_ratio(img, target_ratio)
+    
     img_h, img_w = img.shape[:2]
     
     # Source points: de 4 hoeken van je rechthoekige input foto
@@ -159,7 +245,7 @@ def perspective_warp(
         output_size,
         flags=cv2.INTER_LINEAR,
         borderMode=cv2.BORDER_CONSTANT,
-        borderValue=(0, 0, 0)  # Zwarte achtergrond buiten de foto
+        borderValue=(255, 255, 255)  # Zwarte achtergrond buiten de foto
     )
     
     return warped

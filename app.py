@@ -6,7 +6,12 @@ import subprocess
 import os
 from pathlib import Path
 
+from game.game import Game
+
 app = Flask(__name__)
+
+game: Game = Game()
+game.run()
 
 # Bepaal de werkdirectory
 WORK_DIR = Path(__file__).parent.resolve()
@@ -65,20 +70,7 @@ def upload():
         # Sla op
         img.save(CURRENT_IMAGE, 'JPEG', quality=95)
         
-        # Stop huidige feh process als die er is
-        if feh_process and feh_process.poll() is None:
-            feh_process.terminate()
-            feh_process.wait(timeout=2)
-        
-        # Start feh om de foto te tonen
-        feh_process = subprocess.Popen([
-            'feh',
-            '--fullscreen',
-            '--hide-pointer',
-            '--auto-zoom',
-            '--borderless',
-            CURRENT_IMAGE
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        game.config_new_img()
         
         return jsonify({'success': True, 'message': 'Foto wordt geprojecteerd!'})
         
