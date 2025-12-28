@@ -1,20 +1,32 @@
+from typing import Dict
 import pygame
 from game.app import App
 from game.img import *
 
 IMAGE_PATH = Path("uploads")
 
+CORNERSMODELS: Dict[int, List[Tuple[int, int]]] = {
+    0: [
+        [200, 200],      # top-left
+        [600, 200],      # top-right  
+        [600, 700],      # bottom-right
+        [200, 700]       # bottom-left
+    ],
+    1: [
+        [200, 200],      # top-left
+        [1000, 200],      # top-right  
+        [1000, 700],      # bottom-right
+        [200, 700]       # bottom-left
+    ]
+}
+
 class Game(App):
     
     def __init__(self):
         super().__init__()
         
-        self.corners: Corners = [
-            [200, 150],      # top-left
-            [600, 200],      # top-right  
-            [700, 700],      # bottom-right
-            [250, 750]       # bottom-left
-        ]
+        self.corners_model: int = 0
+        self.corners: Corners = CORNERSMODELS[self.corners_model]
         self.zoom: float = 1
         self.pan_x: float = 0
         self.pan_y: float = 0
@@ -52,6 +64,7 @@ class Game(App):
         self.BTN_ZOOM_OUT = 9
         self.BTN_ZOOM_IN = 10
         self.BTN_SAVE = 2
+        self.BTN_PLUS = 6
         self.USE_DPAD_AXES = False
         self.USE_DPAD_HAT = False
         
@@ -93,8 +106,18 @@ class Game(App):
     def config_new_img(self):
         """Wordt aangeroepen vanuit Flask wanneer nieuwe foto is geupload"""
         self.current_corner = 0
+        self.corners_model = 0
+        self.corners = CORNERSMODELS[self.corners_model]
         self.update_img()
         self.edit_mode = True
+        self.zoom = 1
+        self.pan_x = 0
+        self.pan_y = 0
+    
+    def next_corners_model(self):
+        self.corners_model = (self.corners_model + 1) % len(CORNERSMODELS)
+        self.corners = CORNERSMODELS[self.corners_model]
+        self.update_img()
     
     def update_img(self):
         """Update de afbeelding met huidige transformaties"""
@@ -112,8 +135,8 @@ class Game(App):
         """Handle pygame events"""
         
         # Alleen debug print voor interessante events
-        # if event.type in [pygame.JOYBUTTONDOWN, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED]:
-            # print(f"Event: {event}")
+        if event.type in [pygame.JOYBUTTONDOWN, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED]:
+            print(f"Event: {event}")
         
         if event.type == pygame.JOYDEVICEADDED:
             self.joystick = pygame.joystick.Joystick(0)
@@ -143,13 +166,16 @@ class Game(App):
                 # Zoom
                 elif button == self.BTN_ZOOM_OUT:
                     self.zoom -= 0.1
-                    self.zoom = max(0.1, self.zoom)
+                    self.zoom = max(1, self.zoom)
                     self.update_img()
                     print(f"Zoom: {self.zoom:.2f}")
                 elif button == self.BTN_ZOOM_IN:
                     self.zoom += 0.1
                     self.update_img()
                     print(f"Zoom: {self.zoom:.2f}")
+                
+                elif button == self.BTN_PLUS:
+                    self.next_corners_model()
                 
                 # Save
                 elif button == self.BTN_SAVE:
