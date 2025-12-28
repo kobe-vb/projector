@@ -8,10 +8,10 @@ class App:
         self.screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
         pygame.display.set_mode((pygame.display.Info().current_w, pygame.display.Info().current_h))
         print(pygame.display.Info().current_w, pygame.display.Info().current_h)
-        pygame.display.set_caption("Pygame Basic App")
+        pygame.display.set_caption("alst u moeder")
         self.clock = pygame.time.Clock()
         self.done = False
-        self.fps = 60
+        self.fps = 30
     
     def handle_event(self, event):
         pass
@@ -37,7 +37,7 @@ class App:
             self.draw()
             pygame.display.flip()
             self.clock.tick(self.fps)
-        
+                    
         pygame.quit()
         sys.exit()
 
