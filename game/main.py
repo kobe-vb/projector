@@ -48,12 +48,17 @@ class Game(App):
         system = platform.system()
         
         # Default mapping (Windows/algemeen)
-        self.BTN_NEXT_CORNER = 1
-        self.BTN_ZOOM_OUT = 4
+        self.BTN_NEXT_CORNER = 0
+        self.BTN_ZOOM_OUT = 9
         self.BTN_ZOOM_IN = 10
         self.BTN_SAVE = 2
         self.USE_DPAD_AXES = False
         self.USE_DPAD_HAT = False
+        
+        self.BTN_UP = 11
+        self.BTN_RIGHT = 14
+        self.BTN_DOWN = 12
+        self.BTN_LEFT = 13
         
         # Raspberry Pi / Linux heeft vaak andere mapping
         if system == "Linux":
@@ -107,8 +112,8 @@ class Game(App):
         """Handle pygame events"""
         
         # Alleen debug print voor interessante events
-        if event.type in [pygame.JOYBUTTONDOWN, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED]:
-            print(f"Event: {event}")
+        # if event.type in [pygame.JOYBUTTONDOWN, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED]:
+            # print(f"Event: {event}")
         
         if event.type == pygame.JOYDEVICEADDED:
             self.joystick = pygame.joystick.Joystick(0)
@@ -122,9 +127,10 @@ class Game(App):
             return
         
         if event.type == pygame.JOYBUTTONDOWN:
+                        
             if self.joystick:
                 button = event.button
-                print(f"Button {button} ingedrukt")
+                # print(f"Button {button} ingedrukt")
                 
                 # Next corner
                 if button == self.BTN_NEXT_CORNER:
@@ -161,6 +167,19 @@ class Game(App):
                     )
                     self.edit_mode = False
                     print("Opgeslagen! Edit mode uit.")
+            if not self.USE_DPAD_HAT:
+                # print(f"Button {event.button} ingedrukt")
+                if event.button == self.BTN_UP:
+                    self.pan_y -= 10
+                elif event.button == self.BTN_DOWN:
+                    self.pan_y += 10
+                elif event.button == self.BTN_LEFT:
+                    self.pan_x -= 10
+                elif event.button == self.BTN_RIGHT:
+                    self.pan_x += 10
+                else:
+                    return
+                self.update_img()
         
         elif event.type == pygame.JOYAXISMOTION:
             if self.joystick and self.current_corner >= 0:
@@ -190,6 +209,7 @@ class Game(App):
                     self.pan_y -= y * 20  # Y is omgekeerd in pygame hats
                     self.update_img()
                     print(f"Pan Y: {self.pan_y}")
+            
     
     def draw(self):
         """Teken het scherm"""

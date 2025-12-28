@@ -189,6 +189,32 @@ def calculate_quad_aspect_ratio(corners: Corners) -> float:
     
     return avg_width / avg_height if avg_height > 0 else 1.0
 
+def cover_image_to_aspect_ratio(
+    img: ImageArray,
+    target_aspect_ratio: float
+) -> ImageArray:
+    """
+    Crop de foto zodat het de target aspect ratio krijgt
+    zonder zwarte balken (zoals CSS object-fit: cover)
+    
+    Je VERLIEST wel een deel van de foto aan de randen!
+    """
+    img_h, img_w = img.shape[:2]
+    img_ratio = img_w / img_h
+    
+    if abs(img_ratio - target_aspect_ratio) < 0.001:
+        return img
+    
+    if img_ratio > target_aspect_ratio:
+        # Image is te breed - crop links/rechts
+        new_width = int(img_h * target_aspect_ratio)
+        crop_x = (img_w - new_width) // 2
+        return img[:, crop_x:crop_x + new_width]
+    else:
+        # Image is te hoog - crop top/bottom  
+        new_height = int(img_w / target_aspect_ratio)
+        crop_y = (img_h - new_height) // 2
+        return img[crop_y:crop_y + new_height, :]
 
 def perspective_warp(
     img: ImageArray, 
@@ -217,7 +243,8 @@ def perspective_warp(
     # Als we aspect ratio willen behouden, fit image eerst
     if preserve_aspect_ratio:
         target_ratio = calculate_quad_aspect_ratio(corners)
-        img = fit_image_to_aspect_ratio(img, target_ratio)
+        # img = fit_image_to_aspect_ratio(img, target_ratio)
+        img = cover_image_to_aspect_ratio(img, target_ratio)
     
     img_h, img_w = img.shape[:2]
     

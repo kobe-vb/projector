@@ -10,7 +10,7 @@ import atexit
 # Setup display
 os.environ['DISPLAY'] = ':0'
 
-from game.game import Game
+from game.main import Game
 
 app = Flask(__name__)
 
