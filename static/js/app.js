@@ -190,3 +190,16 @@ document.addEventListener('DOMContentLoaded', initEventListeners);
 
 // Debug log
 console.log('📷 Beamer Photo App geladen!');
+
+
+function callEndpoint(url) {
+    fetch(url)
+        .then(() => alert('Actie uitgevoerd'))
+        .catch(err => alert('Fout: ' + err));
+}
+
+function confirmAction(url, message) {
+    if (confirm(message)) {
+        callEndpoint(url);
+    }
+}

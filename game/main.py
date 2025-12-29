@@ -107,7 +107,7 @@ class Game(App):
     
     def config_new_img(self):
         """Wordt aangeroepen vanuit Flask wanneer nieuwe foto is geupload"""
-        self.current_corner = 0
+        self.current_corner = -1
         self.corners_model = 0
         self.corners = CORNERSMODELS[self.corners_model].copy()
         self.update_img()

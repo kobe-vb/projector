@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,41 +9,50 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#4CAF50">
 </head>
+
 <body>
     <div class="container">
         <h1>📽️ Beamer Projectie</h1>
         <p class="subtitle">Upload een foto om te projecteren</p>
-        
+
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📸</div>
             <div class="upload-text">Klik hier of sleep een foto</div>
             <input type="file" id="fileInput" accept="image/*">
         </div>
-        
+
         <div class="preview-container" id="previewContainer">
             <img id="preview" alt="Preview">
-            
+
             <div class="range-container">
                 <label>Rotatie: <span id="rotationValue">0</span>°</label>
                 <input type="range" id="rotation" min="0" max="360" value="0" step="90">
             </div>
-            
+
             <div class="controls">
                 <button class="btn-primary" id="projectBtn">Projecteer op Beamer</button>
                 <button class="btn-secondary" id="newPhotoBtn">Nieuwe Foto</button>
             </div>
-            
+
             <button class="btn-danger" id="stopBtn">Stop Projectie</button>
+
+            <div class="system-controls">
+                <button class="btn-secondary" onclick="callEndpoint('/edit')">✏️ Edit mode</button>
+                <button class="btn-warning" onclick="confirmAction('/reboot', 'Herstarten?')">🔄 Herstart</button>
+                <button class="btn-danger" onclick="confirmAction('/shutdown', 'Afsluiten?')">⛔ Afsluiten</button>
+            </div>
+
         </div>
-        
+
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>Bezig met verwerken...</p>
         </div>
-        
+
         <div class="message" id="message"></div>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
+
 </html>

@@ -34,6 +34,21 @@ def index():
     """Toon de upload pagina"""
     return render_template('index.html')
 
+@app.route('/edit')
+def edit():
+
+    global game
+    game.edit_mode = True
+    return "Edit mode ingeschakeld"
+
+@app.route('/reboot')
+def reboot():
+    os.system("sudo reboot")
+
+@app.route('/shutdown')
+def shutdown():
+    os.system("sudo shutdown now")
+
 @app.route('/upload', methods=['POST'])
 def upload():
     """Handle foto upload en projectie"""
