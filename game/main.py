@@ -249,7 +249,6 @@ class Game(App):
             return
         
         # Teken polygon
-        pygame.draw.polygon(self.screen, (255, 0, 0), self.corners, 5 if self.current_corner < 0 else 0)
         
         # Teken corners
         for i, corner in enumerate(self.corners):
@@ -258,8 +257,8 @@ class Game(App):
                 color = (255, 0, 0)
             elif i > self.current_corner:
                 color = (0, 0, 255)
-            pygame.draw.circle(self.screen, color, corner, 10)
-
+            pygame.draw.circle(self.screen, color, corner, 20)
+        pygame.draw.polygon(self.screen, (0, 0, 0), self.corners, 3 if self.current_corner < 0 else 0)
 
 if __name__ == "__main__":
     game = Game()
