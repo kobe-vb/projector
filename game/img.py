@@ -81,36 +81,70 @@ def zoom_crop(
     offset_y: float = 0
 ) -> ImageArray:
     """
-    Zoom IN op de foto door te croppen
-    Hogere zoom = kleinere crop = meer ingezoomd
+    Zoom IN/OUT op de foto
+    - zoom > 1.0: zoom IN door te croppen (2.0 = 2x ingezoomd)
+    - zoom < 1.0: zoom OUT door te resizen (0.5 = 2x uitgezoomd)
     
     Args:
         img: numpy array (H, W, 3)
-        zoom_factor: 1.0 = no zoom, 2.0 = 2x zoom in, 0.5 = zoom out (maar crop kan niet groter dan img)
-        offset_x: Hoeveel pixels het crop center verschuiven (positief = rechts)
-        offset_y: Hoeveel pixels het crop center verschuiven (positief = naar beneden)
+        zoom_factor: 1.0 = no zoom, 2.0 = 2x zoom in, 0.5 = 2x zoom out
+        offset_x: Hoeveel pixels het center verschuiven (positief = rechts)
+        offset_y: Hoeveel pixels het center verschuiven (positief = naar beneden)
         
     Returns:
-        Cropped image
-        
-    Voorbeeld:
-        # Zoom 2x in, verschuif 100px naar rechts
-        zoomed = zoom_crop(img, 2.0, offset_x=100, offset_y=0)
+        Zoomed image
     """
     img_h, img_w = img.shape[:2]
     
-    # Bereken de crop window size (kleiner bij hogere zoom)
-    crop_w = int(img_w / zoom_factor)
-    crop_h = int(img_h / zoom_factor)
+    if zoom_factor >= 1.0:
+        # ZOOM IN - crop een kleiner stuk
+        crop_w = int(img_w / zoom_factor)
+        crop_h = int(img_h / zoom_factor)
+        
+        # Center point met offset
+        center_x = img_w // 2 + offset_x
+        center_y = img_h // 2 + offset_y
+        
+        return crop_image(img, center_x, center_y, crop_w, crop_h)
     
-    # Center point met offset
-    center_x = img_w // 2 + offset_x
-    center_y = img_h // 2 + offset_y
+    else:
+        # ZOOM OUT - maak de foto kleiner en voeg padding toe
+        scale = zoom_factor  # bijv. 0.5 = maak foto 50% van origineel
+        
+        # Resize de foto kleiner
+        new_w = int(img_w * scale)
+        new_h = int(img_h * scale)
+        resized = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        
+        # Voeg padding toe zodat het terug originele size heeft
+        # (anders past perspective_warp niet meer)
+        pad_w = img_w - new_w
+        pad_h = img_h - new_h
+        
+        # Bereken offset voor centering + user offset
+        offset_x_scaled = int(offset_x * scale)
+        offset_y_scaled = int(offset_y * scale)
+        
+        pad_left = pad_w // 2 + offset_x_scaled
+        pad_right = pad_w - pad_left
+        pad_top = pad_h // 2 + offset_y_scaled
+        pad_bottom = pad_h - pad_top
+        
+        # Zorg dat padding niet negatief wordt
+        pad_left = max(0, pad_left)
+        pad_right = max(0, pad_right)
+        pad_top = max(0, pad_top)
+        pad_bottom = max(0, pad_bottom)
+        
+        padded = cv2.copyMakeBorder(
+            resized,
+            pad_top, pad_bottom, pad_left, pad_right,
+            cv2.BORDER_CONSTANT,
+            value=(0, 0, 0)  # Zwarte padding
+        )
+        
+        return padded
     
-    # Crop
-    return crop_image(img, center_x, center_y, crop_w, crop_h)
-
-
 def fit_image_to_aspect_ratio(
     img: ImageArray,
     target_aspect_ratio: float

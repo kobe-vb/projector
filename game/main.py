@@ -168,7 +168,7 @@ class Game(App):
                 # Zoom
                 elif button == self.BTN_ZOOM_OUT:
                     self.zoom -= 0.1
-                    self.zoom = max(1, self.zoom)
+                    # self.zoom = max(1, self.zoom)
                     self.update_img()
                     print(f"Zoom: {self.zoom:.2f}")
                 elif button == self.BTN_ZOOM_IN:
