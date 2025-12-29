@@ -26,7 +26,7 @@ class Game(App):
         super().__init__()
         
         self.corners_model: int = 0
-        self.corners: Corners = CORNERSMODELS[self.corners_model]
+        self.corners: Corners = CORNERSMODELS[self.corners_model].copy()
         self.zoom: float = 1
         self.pan_x: float = 0
         self.pan_y: float = 0
@@ -80,6 +80,8 @@ class Game(App):
             self.BTN_ZOOM_OUT = 6         # L1
             self.BTN_ZOOM_IN = 5          # R1
             self.BTN_SAVE = 2             # B button
+            self.BTN_PLUS = 10
+
             # D-pad op Linux kan axes OF hat zijn
             self.USE_DPAD_HAT = True  # Nintendo Pro Controller gebruikt hat
             self.DPAD_HAT = 0
@@ -107,7 +109,7 @@ class Game(App):
         """Wordt aangeroepen vanuit Flask wanneer nieuwe foto is geupload"""
         self.current_corner = 0
         self.corners_model = 0
-        self.corners = CORNERSMODELS[self.corners_model]
+        self.corners = CORNERSMODELS[self.corners_model].copy()
         self.update_img()
         self.edit_mode = True
         self.zoom = 1
@@ -116,7 +118,7 @@ class Game(App):
     
     def next_corners_model(self):
         self.corners_model = (self.corners_model + 1) % len(CORNERSMODELS)
-        self.corners = CORNERSMODELS[self.corners_model]
+        self.corners = CORNERSMODELS[self.corners_model].copy()
         self.update_img()
     
     def update_img(self):
