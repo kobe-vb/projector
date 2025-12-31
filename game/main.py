@@ -131,6 +131,8 @@ class Game(App):
             self.pan_x, 
             self.pan_y
         )
+        if self.img is None:
+            return
         self.img = pygame.surfarray.make_surface(np.transpose(self.img, (1, 0, 2)))
 
     def handle_event(self, event):
