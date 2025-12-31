@@ -9,7 +9,7 @@ venv/
 .env
 
 # Uploads (inhoud negeren, map behouden)
-uploads/*
+/uploads
 !uploads/.gitkeep
 
 # OS / editor files
